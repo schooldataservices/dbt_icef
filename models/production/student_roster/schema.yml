@@ -1,0 +1,46 @@
+version: 2
+
+sources:
+  - name: powerschool
+    tables:
+      - name: pq_studentRosters
+        description: "Table containing student roster information"
+        columns:
+          - name: student_number
+            description: "Unique identifier for each student"
+          - name: partitiontime
+            description: "Partition time for the table"
+          - name: teacherid
+            description: "Unique identifier for the teacher"
+          - name: course_name
+            description: "Name of the course"
+          - name: schoolid
+            description: "School ID"
+          - name: roleid
+            description: "Role ID of the teacher"
+          - name: teacher_startdate
+            description: "Start date of the teacher's assignment"
+          - name: teacher_enddate
+            description: "End date of the teacher's assignment"
+models:
+  - name: student_roster_academic_enrichment  # Match this to the .sql file name
+    description: "View of student rosters with subject assignments for Academic Enrichment"
+    columns:
+      - name: student_number
+        description: "Unique identifier for each student"
+        tests:
+          - not_null
+      - name: expression
+        description: "Expression for the student's schedule"
+      - name: course_name
+        description: "Name of the course"
+        tests:
+          - not_null
+      - name: first_name
+        description: "First name of the teacher"
+      - name: last_name
+        description: "Last name of the teacher"
+      - name: subject
+        description: "Assigned subject based on teacher"
+        tests:
+          - not_null

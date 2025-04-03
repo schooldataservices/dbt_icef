@@ -1,0 +1,51 @@
+version: 2
+
+models:
+  - name: ixl_scores_math
+    description: "Creating the ixl_scores_math_view based on the ixl_scores table"
+    columns:
+      - name: local_student_id
+        description: "Unique identifier for each student"
+        tests:
+          - not_null  # Ensures no missing student IDs
+
+
+      - name: skill_name
+        description: "IXL skill tested"
+        tests:
+          - not_null  # Ensures all skills are labeled
+
+      - name: date_assigned
+        description: "Date the skill was assigned"
+        tests: []
+ 
+
+
+      - name: score
+        description: "Score obtained by the student (0-100)"
+        tests:
+          - not_null  # Ensures scores are not missing
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 100  # Ensures score is within valid range
+
+      - name: subject
+        description: "Subject of the skill assessment"
+        tests:
+          - not_null
+
+      - name: curriculum
+        description: "The grade-level curriculum for the subject"
+        tests:
+          - not_null  # Ensures curriculum is specified
+
+
+sources:
+  - name: ixl
+    tables:
+      - name: ixl_scores
+        description: "Table containing student scores"
+      - name: math_skill_names
+        description: "Table containing skill names for math"
+
+
