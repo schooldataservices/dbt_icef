@@ -31,12 +31,22 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   icef:
     production:
+
+
       student_roster:
         +schema: views
         +enabled: true  # Ensure models in this folder are enabled
       
       ixl:
         +schema: ixl
+        +enabled: true
+
+      main:
+        +schema: views
+        +enabled: true
+
+      grade_auditing:
+        +schema: views
         +enabled: true
 
   

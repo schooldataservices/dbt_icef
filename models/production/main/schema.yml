@@ -1,0 +1,94 @@
+version: 2
+
+sources:
+  - name: illuminate
+    description: Raw tables for Illuminate assessments
+    schema: views
+    tables:
+      - name: illuminate_assessment_results
+        description: Raw table for Illuminate assessment results
+
+  - name: iready
+    description: Raw tables for iReady assessments
+    schema: views
+    tables:
+      - name: iready_assessment_results
+        description: Raw table for iReady assessment results
+
+  - name: star
+    description: Raw tables for STAR assessments
+    schema: views
+    tables:
+      - name: star_assessment_results
+        description: Raw table for STAR assessment results
+
+  - name: dibels
+    description: Raw tables for DIBELS assessments
+    schema: views
+    tables:
+      - name: dibels_assessment_results
+        description: Raw table for DIBELS assessment results
+
+  - name: sbac
+    description: Raw tables for SBAC assessments
+    schema: views
+    tables:
+      - name: sbac_2024
+        description: Raw table for SBAC 2024 assessment results
+
+  - name: ia
+    description: Raw tables for Interim Assessments
+    schema: views
+    tables:
+      - name: IA2_assessment_results_view
+        description: Raw table for IA2 assessment results
+      - name: IA3_assessment_results_view
+        description: Raw table for IA3 assessment results
+
+models:
+  - name: creating_main
+    description: >
+      A materialized view combining assessment results from multiple sources
+      (Illuminate, iReady, STAR, DIBELS, SBAC, IA2, IA3) into a unified dataset.
+    columns:
+      - name: data_source
+        description: The source of the assessment data (e.g., Illuminate, iReady).
+        tests:
+          - not_null
+          - unique
+      - name: assessment_id
+        description: The unique identifier for the assessment.
+        tests:
+          - not_null
+      - name: year
+        description: The year the assessment was taken.
+        tests:
+          - not_null
+      - name: date_taken
+        description: The date the assessment was taken.
+      - name: grade
+        description: The grade level of the student.
+      - name: local_student_id
+        description: The unique identifier for the student.
+        tests:
+          - not_null
+      - name: test_type
+        description: The type of test administered.
+      - name: curriculum
+        description: The curriculum associated with the assessment.
+      - name: unit
+        description: The unit of the assessment.
+      - name: unit_labels
+        description: Labels for the units in the assessment.
+      - name: title
+        description: The title of the assessment.
+      - name: standard_code
+        description: The standard code associated with the assessment.
+      - name: score
+        description: The score achieved by the student.
+      - name: performance_band_level
+        description: The performance band level of the student.
+      - name: performance_band_label
+        description: The label for the performance band.
+      - name: proficiency
+        description: The proficiency level of the student.

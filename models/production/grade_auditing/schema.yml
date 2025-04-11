@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: powerschool_grade_auditing  # Renamed source to make it unique
+    description: Raw tables for grade auditing from the PowerSchool dataset
+    schema: powerschool
+    tables:
+      - name: pq_studentRosters
+        description: Table for PowerSchool student rosters
+      - name: stored_grades_course_category
+        description: Table for stored grades and course categories
+      - name: pq_storedgrades
+        description: Table for PowerSchool stored grades
+      - name: placeholder_real_names
+        description: Table for mapping placeholder teacher names to real names
