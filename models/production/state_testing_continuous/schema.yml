@@ -1,0 +1,19 @@
+version: 2
+
+sources:
+  - name: state_testing
+    description: Raw tables for state testing data
+    schema: state_testing
+    tables:
+      - name: state_testing_continuous
+        description: Continuous state testing data
+        
+models:
+  - name: state_testing_continuous
+    description: Validation checks for the state_testing_continuous table
+    tests:
+      - not_null:
+          column_name: studentidentifier  # Ensure this column is non-null
+      - not_null:
+          column_name: student_number  # Ensure this column is non-null
+      - state_testing_continuous_schoolname_values: {}  # Custom test for schoolname values

@@ -49,4 +49,8 @@ models:
         +schema: views
         +enabled: true
 
+      state_testing_continuous:
+       +schema: state_testing
+       +enabled: true
+
   
