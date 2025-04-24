@@ -7,13 +7,26 @@ sources:
     tables:
       - name: state_testing_continuous
         description: Continuous state testing data
+        tests:
+          - not_null:
+              column_name: studentidentifier  # Ensure this column is non-null
+          - not_null:
+              column_name: student_number  # Ensure this column is non-null
+          - state_testing_continuous_schoolname_values: {}  # Custom test for schoolname values
+      
+      
+      - name: state_testing_2324
+        description: State testing data for the 2023-2024 school year
         
-models:
-  - name: state_testing_continuous
-    description: Validation checks for the state_testing_continuous table
-    tests:
-      - not_null:
-          column_name: studentidentifier  # Ensure this column is non-null
-      - not_null:
-          column_name: student_number  # Ensure this column is non-null
-      - state_testing_continuous_schoolname_values: {}  # Custom test for schoolname values
+
+
+  - name: views
+    description: Views for student-to-teacher relationships
+    schema: views
+    tables:
+      - name: student_to_teacher
+        description: Mapping of students to their teachers
+
+
+  - name: sbac_state_testing_tabular
+    description: Subset of state testing data based on assessmenttype being summative, and join on student_to_teacher table
