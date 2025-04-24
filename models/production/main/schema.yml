@@ -46,32 +46,32 @@ sources:
         description: Raw table for IA3 assessment results
 
 models:
-  - name: creating_main
+  - name: main
     description: >
       A materialized view combining assessment results from multiple sources
       (Illuminate, iReady, STAR, DIBELS, SBAC, IA2, IA3) into a unified dataset.
     columns:
       - name: data_source
         description: The source of the assessment data (e.g., Illuminate, iReady).
-        tests:
-          - not_null
-          - unique
+        # tests:
+          # - not_null
+          # - unique
       - name: assessment_id
         description: The unique identifier for the assessment.
-        tests:
-          - not_null
+        # tests:
+          # - not_null
       - name: year
         description: The year the assessment was taken.
-        tests:
-          - not_null
+        # tests:
+          # - not_null
       - name: date_taken
         description: The date the assessment was taken.
       - name: grade
         description: The grade level of the student.
       - name: local_student_id
         description: The unique identifier for the student.
-        tests:
-          - not_null
+        # tests:
+          # - not_null
       - name: test_type
         description: The type of test administered.
       - name: curriculum

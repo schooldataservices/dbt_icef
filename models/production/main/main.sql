@@ -1,4 +1,4 @@
-{{ config(materialized='view') }}
+{{ config(materialized='view', schema='views') }}
 
 WITH illuminate AS (
   SELECT
