@@ -15,9 +15,9 @@ WITH ela_frame AS (
     `ela:_writing`,
     `ela:_listening`,
     `ela:_research_and_inquiry`
-  FROM {{ source('state_testing', 'state_testing_2324') }}
+  FROM {{ source('state_testing', 'state_testing_continuous') }}
   WHERE assessmenttype = 'Summative'
-    AND subject = 'ELA'
+  AND subject = 'ELA'
 ), 
 
 math_frame AS (
@@ -33,9 +33,9 @@ math_frame AS (
     `math:_concepts_and_procedures`,
     `math:_problem_solving_and_modeling_&_data_analysis`,
     `math:_communicating_reasoning`
-  FROM {{ source('state_testing', 'state_testing_2324') }}
+  FROM {{ source('state_testing', 'state_testing_continuous') }}
   WHERE assessmenttype = 'Summative'
-    AND subject = 'Math'
+  AND subject = 'Math'
 ),
 
 student_to_teacher AS (
@@ -94,8 +94,9 @@ SELECT
 FROM ela_frame e
 LEFT JOIN math_frame m
   ON e.studentidentifier = m.studentidentifier
-LEFT JOIN student_to_teacher s
+RIGHT JOIN student_to_teacher s
   ON COALESCE(e.student_number, m.student_number) = s.student_number
+  WHERE s.grade_level IN (3,4,5,6,7,8,11)
 
   
 -- have 9 students where the student_number is coming across as 0
