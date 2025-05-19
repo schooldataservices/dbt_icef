@@ -1,7 +1,7 @@
 -- goes from multiple rows per assessmenttype and subject to one row per student based on ELA and Math, with assessmenttype summative
 {{ config(materialized='view', schema='views') }}
 
-WITH ela_frame AS (
+WITH ela_continuous AS (
   SELECT DISTINCT  
     studentidentifier, 
     student_number,
@@ -11,16 +11,15 @@ WITH ela_frame AS (
     dfs_ela AS ela_dfs,
     scalescore AS ela_scalescore,
     lexilemeasure AS ela_lexilemeasure,
-    `ela:_reading`,
-    `ela:_writing`,
-    `ela:_listening`,
-    `ela:_research_and_inquiry`
+    SAFE_CAST(`ela:_reading` AS FLOAT64) AS `ela:_reading`,
+    SAFE_CAST(`ela:_writing` AS FLOAT64) AS `ela:_writing`,
+    SAFE_CAST(`ela:_listening` AS FLOAT64) AS `ela:_listening`,
+    SAFE_CAST(`ela:_research_and_inquiry` AS FLOAT64) AS `ela:_research_and_inquiry`
   FROM {{ source('state_testing', 'state_testing_continuous') }}
-  WHERE assessmenttype = 'Summative'
-  AND subject = 'ELA'
+  WHERE assessmenttype = 'Summative' AND subject = 'ELA'
 ), 
 
-math_frame AS (
+math_continuous AS (
   SELECT DISTINCT  
     studentidentifier, 
     student_number,
@@ -30,12 +29,122 @@ math_frame AS (
     dfs_math AS math_dfs,
     scalescore AS math_scalescore,
     lexilemeasure AS math_lexilemeasure,
-    `math:_concepts_and_procedures`,
-    `math:_problem_solving_and_modeling_&_data_analysis`,
-    `math:_communicating_reasoning`
+    SAFE_CAST(`math:_concepts_and_procedures` AS FLOAT64) AS `math:_concepts_and_procedures`,
+    SAFE_CAST(`math:_problem_solving_and_modeling_&_data_analysis` AS FLOAT64) AS `math:_problem_solving_and_modeling_&_data_analysis`,
+    SAFE_CAST(`math:_communicating_reasoning` AS FLOAT64) AS `math:_communicating_reasoning`
   FROM {{ source('state_testing', 'state_testing_continuous') }}
-  WHERE assessmenttype = 'Summative'
-  AND subject = 'Math'
+  WHERE assessmenttype = 'Summative' AND subject = 'Math'
+),
+
+joined_continuous AS (
+  SELECT 
+    COALESCE(e.studentidentifier, m.studentidentifier) AS studentidentifier,
+    COALESCE(e.student_number, m.student_number) AS student_number,
+
+    -- ELA columns
+    e.ela_assessmentname,
+    e.ela_scalescoreachievementlevel,
+    e.ela_proficiency,
+    e.ela_dfs,
+    e.ela_scalescore,
+    e.ela_lexilemeasure,
+    e.`ela:_reading`,
+    e.`ela:_writing`,
+    e.`ela:_listening`,
+    e.`ela:_research_and_inquiry`,
+
+    -- Math columns
+    m.math_assessmentname,
+    m.math_scalescoreachievementlevel,
+    m.math_proficiency,
+    m.math_dfs,
+    m.math_scalescore,
+    m.math_lexilemeasure,
+    m.`math:_concepts_and_procedures`,
+    m.`math:_problem_solving_and_modeling_&_data_analysis`,
+    m.`math:_communicating_reasoning`,
+
+    '2024-2025' AS test_year
+
+  FROM ela_continuous e
+  FULL OUTER JOIN math_continuous m
+    ON e.studentidentifier = m.studentidentifier
+),
+
+ela_2324 AS (
+  SELECT DISTINCT  
+    studentidentifier, 
+    student_number,
+    assessmentname AS ela_assessmentname,
+    scalescoreachievementlevel AS ela_scalescoreachievementlevel,
+    proficiency AS ela_proficiency,
+    dfs_ela AS ela_dfs,
+    scalescore AS ela_scalescore,
+    lexilemeasure AS ela_lexilemeasure,
+    SAFE_CAST(`ela:_reading` AS FLOAT64) AS `ela:_reading`,
+    SAFE_CAST(`ela:_writing` AS FLOAT64) AS `ela:_writing`,
+    SAFE_CAST(`ela:_listening` AS FLOAT64) AS `ela:_listening`,
+    SAFE_CAST(`ela:_research_and_inquiry` AS FLOAT64) AS `ela:_research_and_inquiry`
+  FROM {{ source('state_testing', 'state_testing_2324') }}
+  WHERE assessmenttype = 'Summative' AND subject = 'ELA'
+), 
+
+math_2324 AS (
+  SELECT DISTINCT  
+    studentidentifier, 
+    student_number,
+    assessmentname AS math_assessmentname,
+    scalescoreachievementlevel AS math_scalescoreachievementlevel,
+    proficiency AS math_proficiency,
+    dfs_math AS math_dfs,
+    scalescore AS math_scalescore,
+    lexilemeasure AS math_lexilemeasure,
+    SAFE_CAST(`math:_concepts_and_procedures` AS FLOAT64) AS `math:_concepts_and_procedures`,
+    SAFE_CAST(`math:_problem_solving_and_modeling_&_data_analysis` AS FLOAT64) AS `math:_problem_solving_and_modeling_&_data_analysis`,
+    SAFE_CAST(`math:_communicating_reasoning` AS FLOAT64) AS `math:_communicating_reasoning`
+  FROM {{ source('state_testing', 'state_testing_2324') }}
+  WHERE assessmenttype = 'Summative' AND subject = 'Math'
+),
+
+joined_2324 AS (
+  SELECT 
+    COALESCE(e.studentidentifier, m.studentidentifier) AS studentidentifier,
+    COALESCE(e.student_number, m.student_number) AS student_number,
+
+    -- ELA columns
+    e.ela_assessmentname,
+    e.ela_scalescoreachievementlevel,
+    e.ela_proficiency,
+    e.ela_dfs,
+    e.ela_scalescore,
+    e.ela_lexilemeasure,
+    e.`ela:_reading`,
+    e.`ela:_writing`,
+    e.`ela:_listening`,
+    e.`ela:_research_and_inquiry`,
+
+    -- Math columns
+    m.math_assessmentname,
+    m.math_scalescoreachievementlevel,
+    m.math_proficiency,
+    m.math_dfs,
+    m.math_scalescore,
+    m.math_lexilemeasure,
+    m.`math:_concepts_and_procedures`,
+    m.`math:_problem_solving_and_modeling_&_data_analysis`,
+    m.`math:_communicating_reasoning`,
+
+    '2023-2024' AS test_year
+
+  FROM ela_2324 e
+  FULL OUTER JOIN math_2324 m
+    ON e.studentidentifier = m.studentidentifier
+),
+
+stacked_state_testing AS (
+  SELECT * FROM joined_continuous
+  UNION ALL
+  SELECT * FROM joined_2324
 ),
 
 student_to_teacher AS (
@@ -54,51 +163,55 @@ student_to_teacher AS (
 )
 
 SELECT 
-  COALESCE(e.studentidentifier, m.studentidentifier) AS studentidentifier,
-  COALESCE(e.student_number, m.student_number) AS student_number,
+  sst.studentidentifier,
+  sst.student_number,
 
-  -- ELA columns
-  e.ela_assessmentname,
-  e.ela_scalescoreachievementlevel,
-  e.ela_proficiency,
-  e.ela_dfs,
-  e.ela_scalescore,
-  e.ela_lexilemeasure,
-  e.`ela:_reading`,
-  e.`ela:_writing`,
-  e.`ela:_listening`,
-  e.`ela:_research_and_inquiry`,
+  -- ELA
+  sst.ela_assessmentname,
+  sst.ela_scalescoreachievementlevel,
+  sst.ela_proficiency,
+  sst.ela_dfs,
+  sst.ela_scalescore,
+  sst.ela_lexilemeasure,
+  sst.`ela:_reading`,
+  sst.`ela:_writing`,
+  sst.`ela:_listening`,
+  sst.`ela:_research_and_inquiry`,
 
-  -- Math columns
-  m.math_assessmentname,
-  m.math_scalescoreachievementlevel,
-  m.math_proficiency,
-  m.math_dfs,
-  m.math_scalescore,
-  m.math_lexilemeasure,
-  m.`math:_concepts_and_procedures`,
-  m.`math:_problem_solving_and_modeling_&_data_analysis`,
-  m.`math:_communicating_reasoning`,
+  -- Math
+  sst.math_assessmentname,
+  sst.math_scalescoreachievementlevel,
+  sst.math_proficiency,
+  sst.math_dfs,
+  sst.math_scalescore,
+  sst.math_lexilemeasure,
+  sst.`math:_concepts_and_procedures`,
+  sst.`math:_problem_solving_and_modeling_&_data_analysis`,
+  sst.`math:_communicating_reasoning`,
 
-  -- Student-to-teacher columns
-  s.lastfirst,
-  s.grade_level,
-  s.elastatus,
-  s.race,
-  s.school_name,
-  s.sped_identifier,
-  s.absenteeism_status,
-  s.english_teacher,
-  s.math_teacher
+  -- Metadata
+  sst.test_year,
 
-FROM ela_frame e
-LEFT JOIN math_frame m
-  ON e.studentidentifier = m.studentidentifier
-RIGHT JOIN student_to_teacher s
-  ON COALESCE(e.student_number, m.student_number) = s.student_number
-  WHERE s.grade_level IN (3,4,5,6,7,8,11)
+  -- Student details
+  st.lastfirst,
+  st.grade_level,
+  st.elastatus,
+  st.race,
+  st.school_name,
+  st.sped_identifier,
+  st.absenteeism_status,
+  st.english_teacher,
+  st.math_teacher
 
-  
+FROM stacked_state_testing sst
+INNER JOIN student_to_teacher st
+  ON sst.student_number = st.student_number
+WHERE st.grade_level IN (3,4,5,6,7,8,11)
+
+
+
+-- there are minimal records currently coming through for continuous because they are trickling through
+
 -- have 9 students where the student_number is coming across as 0
 -- aka they are not in the student_to_teacher table. 
 
