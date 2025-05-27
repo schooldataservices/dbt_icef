@@ -30,3 +30,10 @@ sources:
 
   - name: sbac_state_testing_tabular
     description: Subset of state testing data based on assessmenttype being summative, and join on student_to_teacher table
+
+  - name: powerschool
+    description: Powerschool data sources
+    schema: powerschool
+    tables:
+      - name: knight_time_intervention_grade_11_2025
+        description: List of grade 11 students for intervention in 2024-2025

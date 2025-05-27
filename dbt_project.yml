@@ -53,4 +53,8 @@ models:
        +schema: state_testing
        +enabled: true
 
+      powerschool:
+        +schema: powerschool
+        +enabled: true
+
   

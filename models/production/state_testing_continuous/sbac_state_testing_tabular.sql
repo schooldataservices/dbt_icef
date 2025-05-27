@@ -62,9 +62,7 @@ joined_continuous AS (
     m.math_lexilemeasure,
     m.`math:_concepts_and_procedures`,
     m.`math:_problem_solving_and_modeling_&_data_analysis`,
-    m.`math:_communicating_reasoning`,
-
-    '2024-2025' AS test_year
+    m.`math:_communicating_reasoning`
 
   FROM ela_continuous e
   FULL OUTER JOIN math_continuous m
@@ -75,16 +73,9 @@ ela_2324 AS (
   SELECT DISTINCT  
     studentidentifier, 
     student_number,
-    assessmentname AS ela_assessmentname,
     scalescoreachievementlevel AS ela_scalescoreachievementlevel,
-    proficiency AS ela_proficiency,
     dfs_ela AS ela_dfs,
-    scalescore AS ela_scalescore,
-    lexilemeasure AS ela_lexilemeasure,
-    SAFE_CAST(`ela:_reading` AS FLOAT64) AS `ela:_reading`,
-    SAFE_CAST(`ela:_writing` AS FLOAT64) AS `ela:_writing`,
-    SAFE_CAST(`ela:_listening` AS FLOAT64) AS `ela:_listening`,
-    SAFE_CAST(`ela:_research_and_inquiry` AS FLOAT64) AS `ela:_research_and_inquiry`
+    proficiency
   FROM {{ source('state_testing', 'state_testing_2324') }}
   WHERE assessmenttype = 'Summative' AND subject = 'ELA'
 ), 
@@ -93,15 +84,8 @@ math_2324 AS (
   SELECT DISTINCT  
     studentidentifier, 
     student_number,
-    assessmentname AS math_assessmentname,
     scalescoreachievementlevel AS math_scalescoreachievementlevel,
-    proficiency AS math_proficiency,
-    dfs_math AS math_dfs,
-    scalescore AS math_scalescore,
-    lexilemeasure AS math_lexilemeasure,
-    SAFE_CAST(`math:_concepts_and_procedures` AS FLOAT64) AS `math:_concepts_and_procedures`,
-    SAFE_CAST(`math:_problem_solving_and_modeling_&_data_analysis` AS FLOAT64) AS `math:_problem_solving_and_modeling_&_data_analysis`,
-    SAFE_CAST(`math:_communicating_reasoning` AS FLOAT64) AS `math:_communicating_reasoning`
+    dfs_math AS math_dfs
   FROM {{ source('state_testing', 'state_testing_2324') }}
   WHERE assessmenttype = 'Summative' AND subject = 'Math'
 ),
@@ -110,41 +94,27 @@ joined_2324 AS (
   SELECT 
     COALESCE(e.studentidentifier, m.studentidentifier) AS studentidentifier,
     COALESCE(e.student_number, m.student_number) AS student_number,
-
-    -- ELA columns
-    e.ela_assessmentname,
-    e.ela_scalescoreachievementlevel,
-    e.ela_proficiency,
-    e.ela_dfs,
-    e.ela_scalescore,
-    e.ela_lexilemeasure,
-    e.`ela:_reading`,
-    e.`ela:_writing`,
-    e.`ela:_listening`,
-    e.`ela:_research_and_inquiry`,
-
-    -- Math columns
-    m.math_assessmentname,
-    m.math_scalescoreachievementlevel,
-    m.math_proficiency,
-    m.math_dfs,
-    m.math_scalescore,
-    m.math_lexilemeasure,
-    m.`math:_concepts_and_procedures`,
-    m.`math:_problem_solving_and_modeling_&_data_analysis`,
-    m.`math:_communicating_reasoning`,
-
-    '2023-2024' AS test_year
-
+    e.ela_scalescoreachievementlevel AS `24_ela_scalescoreachievementlevel`,
+    e.ela_dfs AS `24_ela_dfs`,
+    m.math_scalescoreachievementlevel AS `24_math_scalescoreachievementlevel`,
+    m.math_dfs AS `24_math_dfs`,
+    e.proficiency AS `24_proficiency`
   FROM ela_2324 e
   FULL OUTER JOIN math_2324 m
     ON e.studentidentifier = m.studentidentifier
 ),
 
 stacked_state_testing AS (
-  SELECT * FROM joined_continuous
-  UNION ALL
-  SELECT * FROM joined_2324
+  SELECT 
+    jc.*,
+    j24.24_ela_scalescoreachievementlevel,
+    j24.24_ela_dfs,
+    j24.24_math_scalescoreachievementlevel,
+    j24.24_math_dfs,
+    j24.24_proficiency
+  FROM joined_continuous jc
+  LEFT JOIN joined_2324 j24
+    ON jc.studentidentifier = j24.studentidentifier
 ),
 
 student_to_teacher AS (
@@ -160,6 +130,13 @@ student_to_teacher AS (
     english_teacher,
     math_teacher
   FROM {{ source('views', 'student_to_teacher') }}
+),
+
+intervention_11 AS (
+  SELECT 
+    student_number,
+    intervention
+  FROM {{ source('powerschool', 'knight_time_intervention_grade_11_2025') }}
 )
 
 SELECT 
@@ -189,8 +166,12 @@ SELECT
   sst.`math:_problem_solving_and_modeling_&_data_analysis`,
   sst.`math:_communicating_reasoning`,
 
-  -- Metadata
-  sst.test_year,
+  -- 2023–2024 indicators
+  sst.24_ela_scalescoreachievementlevel,
+  sst.24_ela_dfs,
+  sst.24_math_scalescoreachievementlevel,
+  sst.24_math_dfs,
+  sst.24_proficiency,
 
   -- Student details
   st.lastfirst,
@@ -201,14 +182,15 @@ SELECT
   st.sped_identifier,
   st.absenteeism_status,
   st.english_teacher,
-  st.math_teacher
+  st.math_teacher,
+  i11.intervention
 
 FROM stacked_state_testing sst
-INNER JOIN student_to_teacher st
+RIGHT JOIN student_to_teacher st
   ON sst.student_number = st.student_number
-WHERE st.grade_level IN (3,4,5,6,7,8,11)
-
-
+LEFT JOIN intervention_11 i11
+  ON st.student_number = i11.student_number
+WHERE st.grade_level IN (3, 4, 5, 6, 7, 8, 11)
 
 -- there are minimal records currently coming through for continuous because they are trickling through
 
@@ -219,3 +201,4 @@ WHERE st.grade_level IN (3,4,5,6,7,8,11)
 -- from icef-437920.powerschool.vw_attendance_demographics_CA
 
 -- Therefore if a student_number is missing it was inherently missing in the icef-437920.powerschool.vw_attendance_demographics_CA
+
