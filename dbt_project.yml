@@ -33,7 +33,7 @@ models:
     production:
 
 
-      student_roster:
+      student_roster_views:
         +schema: views
         +enabled: true  # Ensure models in this folder are enabled
       

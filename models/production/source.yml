@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: views   # This is your BigQuery dataset name
+    description: "Existing BigQuery dataset containing views"
+    tables:
+      - name: student_to_teacher
+        description: "Existing table for student-to-teacher mapping"
+        tests:
+          - not_null:
+              column_name: student_number
+          - unique:
+              column_name: student_number
+          - not_null:
+              column_name: lastfirst

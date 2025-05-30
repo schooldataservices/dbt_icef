@@ -19,13 +19,12 @@ sources:
         description: State testing data for the 2023-2024 school year
         
 
-
-  - name: views
-    description: Views for student-to-teacher relationships
-    schema: views
-    tables:
-      - name: student_to_teacher
-        description: Mapping of students to their teachers
+  # - name: views
+  #   description: Views for student-to-teacher relationships
+  #   schema: views
+  #   tables:
+  #     - name: student_to_teacher
+  #       description: Mapping of students to their teachers
 
 
   - name: sbac_state_testing_tabular
