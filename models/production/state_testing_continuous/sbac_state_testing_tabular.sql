@@ -11,10 +11,10 @@ WITH ela_continuous AS (
     dfs_ela AS ela_dfs,
     scalescore AS ela_scalescore,
     lexilemeasure AS ela_lexilemeasure,
-    SAFE_CAST(`ela:_reading` AS FLOAT64) AS `ela:_reading`,
-    SAFE_CAST(`ela:_writing` AS FLOAT64) AS `ela:_writing`,
-    SAFE_CAST(`ela:_listening` AS FLOAT64) AS `ela:_listening`,
-    SAFE_CAST(`ela:_research_and_inquiry` AS FLOAT64) AS `ela:_research_and_inquiry`
+    SAFE_CAST(`ela__reading` AS FLOAT64) AS `ela__reading`,
+    SAFE_CAST(`ela__writing` AS FLOAT64) AS `ela__writing`,
+    SAFE_CAST(`ela__listening` AS FLOAT64) AS `ela__listening`,
+    SAFE_CAST(`ela__research_and_inquiry` AS FLOAT64) AS `ela__research_and_inquiry`
   FROM {{ source('state_testing', 'state_testing_continuous') }}
   WHERE assessmenttype = 'Summative' AND subject = 'ELA'
 ), 
@@ -29,9 +29,9 @@ math_continuous AS (
     dfs_math AS math_dfs,
     scalescore AS math_scalescore,
     lexilemeasure AS math_lexilemeasure,
-    SAFE_CAST(`math:_concepts_and_procedures` AS FLOAT64) AS `math:_concepts_and_procedures`,
-    SAFE_CAST(`math:_problem_solving_and_modeling_&_data_analysis` AS FLOAT64) AS `math:_problem_solving_and_modeling_&_data_analysis`,
-    SAFE_CAST(`math:_communicating_reasoning` AS FLOAT64) AS `math:_communicating_reasoning`
+    SAFE_CAST(`math__concepts_and_procedures` AS FLOAT64) AS `math__concepts_and_procedures`,
+    SAFE_CAST(`math__problem_solving_and_modeling___data_analysis` AS FLOAT64) AS `math__problem_solving_and_modeling___data_analysis`,
+    SAFE_CAST(`math__communicating_reasoning` AS FLOAT64) AS `math__communicating_reasoning`
   FROM {{ source('state_testing', 'state_testing_continuous') }}
   WHERE assessmenttype = 'Summative' AND subject = 'Math'
 ),
@@ -48,10 +48,10 @@ joined_continuous AS (
     e.ela_dfs,
     e.ela_scalescore,
     e.ela_lexilemeasure,
-    e.`ela:_reading`,
-    e.`ela:_writing`,
-    e.`ela:_listening`,
-    e.`ela:_research_and_inquiry`,
+    e.`ela__reading`,
+    e.`ela__writing`,
+    e.`ela__listening`,
+    e.`ela__research_and_inquiry`,
 
     -- Math columns
     m.math_assessmentname,
@@ -60,9 +60,9 @@ joined_continuous AS (
     m.math_dfs,
     m.math_scalescore,
     m.math_lexilemeasure,
-    m.`math:_concepts_and_procedures`,
-    m.`math:_problem_solving_and_modeling_&_data_analysis`,
-    m.`math:_communicating_reasoning`
+    m.`math__concepts_and_procedures`,
+    m.`math__problem_solving_and_modeling___data_analysis`,
+    m.`math__communicating_reasoning`
 
   FROM ela_continuous e
   FULL OUTER JOIN math_continuous m
@@ -150,10 +150,10 @@ SELECT
   sst.ela_dfs,
   sst.ela_scalescore,
   sst.ela_lexilemeasure,
-  sst.`ela:_reading`,
-  sst.`ela:_writing`,
-  sst.`ela:_listening`,
-  sst.`ela:_research_and_inquiry`,
+  sst.`ela__reading`,
+  sst.`ela__writing`,
+  sst.`ela__listening`,
+  sst.`ela__research_and_inquiry`,
 
   -- Math
   sst.math_assessmentname,
@@ -162,9 +162,9 @@ SELECT
   sst.math_dfs,
   sst.math_scalescore,
   sst.math_lexilemeasure,
-  sst.`math:_concepts_and_procedures`,
-  sst.`math:_problem_solving_and_modeling_&_data_analysis`,
-  sst.`math:_communicating_reasoning`,
+  sst.`math__concepts_and_procedures`,
+  sst.`math__problem_solving_and_modeling___data_analysis`,
+  sst.`math__communicating_reasoning`,
 
   -- 2023–2024 indicators
   sst.24_ela_scalescoreachievementlevel,
