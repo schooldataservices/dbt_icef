@@ -10,9 +10,9 @@ WITH cast_continuous AS (
     dfs_cast AS cast_dfs,
     scalescore,
     lexilemeasure,
-    SAFE_CAST(`cast:_life_sciences` AS FLOAT64) AS `cast:_life_sciences`,
-    SAFE_CAST(`cast:_physical_sciences` AS FLOAT64) AS `cast:_physical_sciences`,
-    SAFE_CAST(`cast:_earth_and_space_sciences` AS FLOAT64) AS `cast:_earth_and_space_sciences`
+    SAFE_CAST(`cast__life_sciences` AS FLOAT64) AS `cast__life_sciences`,
+    SAFE_CAST(`cast__physical_sciences` AS FLOAT64) AS `cast__physical_sciences`,
+    SAFE_CAST(`cast__earth_and_space_sciences` AS FLOAT64) AS `cast__earth_and_space_sciences`
   FROM {{ source('state_testing', 'state_testing_continuous') }}
   WHERE assessmentname IN ('CAST Summative Grade 5', 'CAST Summative Grade 8', 'CAST Summative Grade HS') 
 ), 
@@ -68,9 +68,9 @@ SELECT
   sst.cast_dfs,
   sst.scalescore,
   sst.lexilemeasure,
-  sst.`cast:_life_sciences`,
-  sst.`cast:_physical_sciences`,
-  sst.`cast:_earth_and_space_sciences`,
+  sst.`cast__life_sciences`,
+  sst.`cast__physical_sciences`,
+  sst.`cast__earth_and_space_sciences`,
   sst.scalescoreachievementlevel_2324 AS `24_scalescoreachievementlevel`,
   sst.proficiency_2324 AS `24_proficiency`,
   st.lastfirst,
@@ -80,7 +80,7 @@ SELECT
   st.school_name,
   st.sped_identifier,
   st.absenteeism_status,
-  st.teacher,
+  st.teacher
 FROM stacked_state_testing sst
 RIGHT JOIN student_to_teacher st
   ON sst.student_number = st.student_number
