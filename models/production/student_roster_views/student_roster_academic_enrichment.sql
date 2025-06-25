@@ -1,4 +1,5 @@
-{{ config(materialized='view', schema='views') }}
+-- {{ config(materialized='view', schema='views') }}
+{{ config(enabled=false) }}
 
 WITH MaxPartition AS (
   SELECT MAX(S.partitiontime) AS max_partitiontime
@@ -32,5 +33,5 @@ JOIN (
 WHERE S.course_name LIKE '%Academic Enrichment%'
   AND S.schoolid LIKE '543'
   AND S.roleid LIKE '41'
-  AND CURRENT_TIMESTAMP BETWEEN TIMESTAMP(S.teacher_startdate) AND TIMESTAMP(S.teacher_enddate)
+  -- AND CURRENT_TIMESTAMP BETWEEN TIMESTAMP(S.teacher_startdate) AND TIMESTAMP(S.teacher_enddate)
   AND T.last_name IN ('Estrada', 'Dobbs', 'Fowler', 'Jameison', 'Jones', 'Madlansacay', 'McCutcheon', 'Placeholder', 'Price', 'Turney')

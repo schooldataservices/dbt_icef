@@ -3,43 +3,38 @@ version: 2
 sources:
   - name: illuminate
     description: Raw tables for Illuminate assessments
-    schema: views
+    schema: illuminate
     tables:
       - name: illuminate_assessment_results
         description: Raw table for Illuminate assessment results
 
   - name: iready
     description: Raw tables for iReady assessments
-    schema: views
+    schema: iready
     tables:
       - name: iready_assessment_results
         description: Raw table for iReady assessment results
 
   - name: star
     description: Raw tables for STAR assessments
-    schema: views
+    schema: star
     tables:
       - name: star_assessment_results
         description: Raw table for STAR assessment results
 
   - name: dibels
     description: Raw tables for DIBELS assessments
-    schema: views
+    schema: dibels
     tables:
       - name: dibels_assessment_results
         description: Raw table for DIBELS assessment results
 
-  - name: sbac
-    description: Raw tables for SBAC assessments
-    schema: views
+  - name: state_testing
+    description: Raw tables for SBAC & Interim assessments
+    schema: state_testing
     tables:
       - name: sbac_2024
         description: Raw table for SBAC 2024 assessment results
-
-  - name: ia
-    description: Raw tables for Interim Assessments
-    schema: views
-    tables:
       - name: IA2_assessment_results_view
         description: Raw table for IA2 assessment results
       - name: IA3_assessment_results_view

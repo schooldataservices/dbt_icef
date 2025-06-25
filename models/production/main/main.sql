@@ -102,7 +102,7 @@ sbac AS (
     CAST(NULL AS STRING) AS performance_band_level, 
     CAST(NULL AS STRING) AS performance_band_label, 
     CAST(NULL AS STRING) AS proficiency 
-  FROM {{ source('sbac', 'sbac_2024') }}
+  FROM {{ source('state_testing', 'sbac_2024') }}
 ),
 
 IA2 AS (
@@ -123,7 +123,7 @@ IA2 AS (
     CAST(performance_band_level AS STRING),
     CAST(performance_band_label AS STRING),
     CAST(proficiency AS STRING)
-  FROM {{ source('ia', 'IA2_assessment_results_view') }}
+  FROM {{ source('state_testing', 'IA2_assessment_results_view') }}
 ),
 
 IA3 AS (
@@ -144,7 +144,7 @@ IA3 AS (
     CAST(performance_band_level AS STRING),
     CAST(performance_band_label AS STRING),
     CAST(proficiency AS STRING)
-  FROM {{ source('ia', 'IA3_assessment_results_view') }}
+  FROM {{ source('state_testing', 'IA3_assessment_results_view') }}
 )
 
 SELECT * FROM illuminate
