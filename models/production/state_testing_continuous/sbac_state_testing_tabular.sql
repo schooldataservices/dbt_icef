@@ -1,5 +1,8 @@
 -- goes from multiple rows per assessmenttype and subject to one row per student based on ELA and Math, with assessmenttype summative
-{{ config(materialized='view', schema='views') }}
+-- {{ config(materialized='view', schema='views') }}
+-- {{ config(materialized='table', schema='views') }} --(one time)
+{{ config(enabled=false) }}
+
 
 WITH ela_continuous AS (
   SELECT DISTINCT  

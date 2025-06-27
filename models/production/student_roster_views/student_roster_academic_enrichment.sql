@@ -1,4 +1,5 @@
 -- {{ config(materialized='view', schema='views') }}
+-- {{ config(materialized='table', schema='views') }} --(one time)
 {{ config(enabled=false) }}
 
 WITH MaxPartition AS (

@@ -1,4 +1,7 @@
-{{ config(materialized='view', schema='views') }}
+-- {{ config(materialized='view', schema='views') }} (dynamic)
+-- {{ config(materialized='table', schema='views') }} (one time)
+{{ config(enabled=false) }} (turn off)
+
 
 WITH illuminate AS (
   SELECT

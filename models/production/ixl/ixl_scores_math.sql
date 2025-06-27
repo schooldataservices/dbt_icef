@@ -1,4 +1,6 @@
-{{ config(materialized='view', schema='ixl') }}
+-- {{ config(materialized='view', schema='ixl') }}
+{{ config(enabled=false) }}
+
 
 with source_data as (
     select 
