@@ -1,6 +1,4 @@
--- {{ config(materialized='view', schema='views') }}
--- {{ config(materialized='table', schema='views') }} --(one time)
-{{ config(enabled=false) }}
+{{ config(materialized='view', schema='views') }}
 
 
 WITH cast_continuous AS (
@@ -60,31 +58,69 @@ student_to_teacher AS (
     END AS teacher
 
   FROM {{ source('views', 'student_to_teacher') }}
+  WHERE year = '24-25'
+),
+
+current_year AS (
+  SELECT 
+    sst.studentidentifier,
+    sst.student_number,
+    sst.assessmentname,
+    sst.scalescoreachievementlevel,
+    sst.proficiency,
+    cast_dfs,  
+    sst.scalescore,
+    CAST(sst.lexilemeasure AS FLOAT64) AS lexilemeasure,
+    sst.`cast__life_sciences`,
+    sst.`cast__physical_sciences`,
+    sst.`cast__earth_and_space_sciences`,
+    CAST(sst.scalescoreachievementlevel_2324 AS FLOAT64) AS `24_scalescoreachievementlevel`,
+    sst.proficiency_2324 AS `24_proficiency`,
+    st.lastfirst,
+    st.grade_level,
+    st.elastatus,
+    st.race,
+    st.school_name,
+    st.sped_identifier,
+    st.absenteeism_status,
+    st.teacher,
+    '24-25' AS year
+  FROM stacked_state_testing sst
+  RIGHT JOIN student_to_teacher st
+    ON sst.student_number = st.student_number
+  WHERE st.grade_level IN (5, 8, 12)
+),
+
+historical AS (
+  SELECT 
+    studentidentifier,
+    student_number,
+    assessmentname,
+    scalescoreachievementlevel,
+    proficiency,
+    cast_dfs, 
+    scalescore,
+    CAST(lexilemeasure AS FLOAT64) AS lexilemeasure,
+    `cast__life_sciences`,
+    `cast__physical_sciences`,
+    `cast__earth_and_space_sciences`,
+    CAST(`24_scalescoreachievementlevel` AS FLOAT64) AS `24_scalescoreachievementlevel`,
+    `24_proficiency`,
+    lastfirst,
+    grade_level,
+    elastatus,
+    race,
+    school_name,
+    sped_identifier,
+    absenteeism_status,
+    teacher,
+    '24-25' AS year
+  FROM `icef-437920.dbt_historical.cast_state_testing_tabular_24-25`
 )
 
-SELECT 
-  sst.studentidentifier,
-  sst.student_number,
-  sst.assessmentname,
-  sst.scalescoreachievementlevel,
-  sst.proficiency,
-  sst.cast_dfs,
-  sst.scalescore,
-  sst.lexilemeasure,
-  sst.`cast__life_sciences`,
-  sst.`cast__physical_sciences`,
-  sst.`cast__earth_and_space_sciences`,
-  sst.scalescoreachievementlevel_2324 AS `24_scalescoreachievementlevel`,
-  sst.proficiency_2324 AS `24_proficiency`,
-  st.lastfirst,
-  st.grade_level,
-  st.elastatus,
-  st.race,
-  st.school_name,
-  st.sped_identifier,
-  st.absenteeism_status,
-  st.teacher
-FROM stacked_state_testing sst
-RIGHT JOIN student_to_teacher st
-  ON sst.student_number = st.student_number
-WHERE st.grade_level IN (5, 8, 12)
+SELECT DISTINCT *
+FROM (
+  SELECT * FROM current_year
+  UNION ALL
+  SELECT * FROM historical
+)

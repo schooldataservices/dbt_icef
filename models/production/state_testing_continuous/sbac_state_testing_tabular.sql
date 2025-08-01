@@ -1,7 +1,5 @@
 -- goes from multiple rows per assessmenttype and subject to one row per student based on ELA and Math, with assessmenttype summative
--- {{ config(materialized='view', schema='views') }}
--- {{ config(materialized='table', schema='views') }} --(one time)
-{{ config(enabled=false) }}
+{{ config(materialized='view', schema='views') }}
 
 
 WITH ela_continuous AS (
@@ -133,6 +131,7 @@ student_to_teacher AS (
     english_teacher,
     math_teacher
   FROM {{ source('views', 'student_to_teacher') }}
+  WHERE year = '24-25'
 ),
 
 intervention_11 AS (
@@ -140,68 +139,102 @@ intervention_11 AS (
     student_number,
     intervention
   FROM {{ source('powerschool', 'knight_time_intervention_grade_11_2025') }}
+),
+
+current_year AS (
+  SELECT 
+    sst.studentidentifier,
+    sst.student_number,
+    sst.ela_assessmentname,
+    sst.ela_scalescoreachievementlevel,
+    sst.ela_proficiency,
+    sst.ela_dfs,
+    sst.ela_scalescore,
+    sst.ela_lexilemeasure,
+    sst.`ela__reading`,
+    sst.`ela__writing`,
+    sst.`ela__listening`,
+    sst.`ela__research_and_inquiry`,
+    sst.math_assessmentname,
+    sst.math_scalescoreachievementlevel,
+    sst.math_proficiency,
+    sst.math_dfs,
+    sst.math_scalescore,
+    CAST(sst.math_lexilemeasure AS FLOAT64) AS math_lexilemeasure,
+    sst.`math__concepts_and_procedures`,
+    sst.`math__problem_solving_and_modeling___data_analysis`,
+    sst.`math__communicating_reasoning`,
+    sst.24_ela_scalescoreachievementlevel,
+    sst.24_ela_dfs,
+    sst.24_math_scalescoreachievementlevel,
+    sst.24_math_dfs,
+    sst.24_proficiency,
+    st.lastfirst,
+    st.grade_level,
+    st.elastatus,
+    st.race,
+    st.school_name,
+    st.sped_identifier,
+    st.absenteeism_status,
+    st.english_teacher,
+    st.math_teacher,
+    CAST('24-25' AS STRING) AS year,
+    i11.intervention
+  FROM stacked_state_testing sst
+  RIGHT JOIN student_to_teacher st
+    ON sst.student_number = st.student_number
+  LEFT JOIN intervention_11 i11
+    ON st.student_number = i11.student_number
+  WHERE st.grade_level IN (3, 4, 5, 6, 7, 8, 11)
+),
+
+historical AS (
+  SELECT
+    studentidentifier,
+    student_number,
+    ela_assessmentname,
+    ela_scalescoreachievementlevel,
+    ela_proficiency,
+    ela_dfs,
+    ela_scalescore,
+    ela_lexilemeasure,
+    `ela__reading`,
+    `ela__writing`,
+    `ela__listening`,
+    `ela__research_and_inquiry`,
+    math_assessmentname,
+    math_scalescoreachievementlevel,
+    math_proficiency,
+    math_dfs,
+    math_scalescore,
+    CAST(math_lexilemeasure AS FLOAT64) AS math_lexilemeasure,
+    `math__concepts_and_procedures`,
+    `math__problem_solving_and_modeling___data_analysis`,
+    `math__communicating_reasoning`,
+    `24_ela_scalescoreachievementlevel`,
+    `24_ela_dfs`,
+    `24_math_scalescoreachievementlevel`,
+    `24_math_dfs`,
+    `24_proficiency`,
+    lastfirst,
+    grade_level,
+    elastatus,
+    race,
+    school_name,
+    sped_identifier,
+    absenteeism_status,
+    english_teacher,
+    math_teacher,
+    CAST('24-25' AS STRING) AS year,
+    intervention
+  FROM `icef-437920.dbt_historical.sbac_state_testing_tabular_24-25`
 )
 
-SELECT 
-  sst.studentidentifier,
-  sst.student_number,
+SELECT DISTINCT *
+FROM (
+  SELECT * FROM current_year
+  UNION ALL
+  SELECT * FROM historical
+)
 
-  -- ELA
-  sst.ela_assessmentname,
-  sst.ela_scalescoreachievementlevel,
-  sst.ela_proficiency,
-  sst.ela_dfs,
-  sst.ela_scalescore,
-  sst.ela_lexilemeasure,
-  sst.`ela__reading`,
-  sst.`ela__writing`,
-  sst.`ela__listening`,
-  sst.`ela__research_and_inquiry`,
-
-  -- Math
-  sst.math_assessmentname,
-  sst.math_scalescoreachievementlevel,
-  sst.math_proficiency,
-  sst.math_dfs,
-  sst.math_scalescore,
-  sst.math_lexilemeasure,
-  sst.`math__concepts_and_procedures`,
-  sst.`math__problem_solving_and_modeling___data_analysis`,
-  sst.`math__communicating_reasoning`,
-
-  -- 2023–2024 indicators
-  sst.24_ela_scalescoreachievementlevel,
-  sst.24_ela_dfs,
-  sst.24_math_scalescoreachievementlevel,
-  sst.24_math_dfs,
-  sst.24_proficiency,
-
-  -- Student details
-  st.lastfirst,
-  st.grade_level,
-  st.elastatus,
-  st.race,
-  st.school_name,
-  st.sped_identifier,
-  st.absenteeism_status,
-  st.english_teacher,
-  st.math_teacher,
-  i11.intervention
-
-FROM stacked_state_testing sst
-RIGHT JOIN student_to_teacher st
-  ON sst.student_number = st.student_number
-LEFT JOIN intervention_11 i11
-  ON st.student_number = i11.student_number
-WHERE st.grade_level IN (3, 4, 5, 6, 7, 8, 11)
-
--- there are minimal records currently coming through for continuous because they are trickling through
-
--- have 9 students where the student_number is coming across as 0
--- aka they are not in the student_to_teacher table. 
-
---The population of the student_number generations in the student_to_teacher table stems 
--- from icef-437920.powerschool.vw_attendance_demographics_CA
-
--- Therefore if a student_number is missing it was inherently missing in the icef-437920.powerschool.vw_attendance_demographics_CA
-
+--1183 total row count before historical

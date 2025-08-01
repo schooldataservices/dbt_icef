@@ -1,5 +1,4 @@
--- {{ config(materialized='view', schema='views') }}
-{{ config(enabled=false) }}
+{{ config(materialized='table', schema='views') }}
 
 WITH MaxPartition AS (
   SELECT MAX(S.partitiontime) AS max_partitiontime
