@@ -1,7 +1,7 @@
 version: 2
 
 sources:
-  - name: views   # This is your BigQuery dataset name
+  - name: views
     description: "Existing BigQuery dataset containing views"
     tables:
       - name: student_to_teacher
@@ -9,7 +9,10 @@ sources:
         tests:
           - not_null:
               column_name: student_number
-          - unique:
-              column_name: student_number
+          - dbt_utils.unique_combination_of_columns:
+              combination_of_columns:
+                - student_number
+                - year
+                - grade_level
           - not_null:
               column_name: lastfirst
