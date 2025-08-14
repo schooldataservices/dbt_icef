@@ -1,6 +1,4 @@
--- {{ config(materialized='view', schema='views') }} (dynamic)
--- {{ config(materialized='table', schema='views') }} (one time)
-{{ config(enabled=false) }} (turn off)
+{{ config(materialized='view', schema='views') }} --(dynamic)
 
 
 WITH illuminate AS (
