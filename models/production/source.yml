@@ -16,3 +16,10 @@ sources:
                 - grade_level
           - not_null:
               column_name: lastfirst
+
+  - name: enrollment
+    description: "BigQuery dataset containing enrollment tables"
+    tables:
+      - name: budgeted_enrollment_capacity
+        description: "Table for budgeted enrollment and seat capacity"
+

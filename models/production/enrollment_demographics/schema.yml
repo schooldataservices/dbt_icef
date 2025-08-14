@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: enrollment_demographics
+    description: >
+      Combines subgroup counts from student_to_teacher with budgeted enrollment and seat capacity.
+    columns:
+      - name: school_name
+        description: School name
+      - name: grade_level
+        description: Grade level (as string)
+      - name: subgroup
+        description: Subgroup type (race, elastatus, sped_identifier, absenteeism_status, frlstatus, or blank for budget)
+      - name: demographic
+        description: Demographic value for the subgroup
+      - name: student_count
+        description: Number of students in the subgroup or total enrollment
+      - name: budgeted_enrollment
+        description: Budgeted enrollment for the grade (nullable)
+      - name: seats_remaining
+        description: Seats remaining for the grade (nullable)
