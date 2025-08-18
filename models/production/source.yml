@@ -23,3 +23,9 @@ sources:
       - name: budgeted_enrollment_capacity
         description: "Table for budgeted enrollment and seat capacity"
 
+
+  - name: enrollment
+    description: "BigQuery dataset containing enrollment tables with hardcoded values"
+    tables:
+      - name: budgeted_enrollment_capacity_hardcode_8_18_25
+        description: "Table for budgeted enrollment and seat capacity (hardcoded for 8/18/25)"
