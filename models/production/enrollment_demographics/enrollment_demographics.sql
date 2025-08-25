@@ -19,12 +19,27 @@ actual_vs_budget AS (
         '' AS demographic,
         ts.total_students AS student_count,
         CAST(bec.budgeted_enrollment AS INT64) AS budgeted_enrollment,
-        CAST(bec.budgeted_enrollment AS INT64) - SAFE_CAST(ts.total_students AS INT64) AS seats_remaining
+        CAST(bec.budgeted_enrollment AS INT64) - SAFE_CAST(ts.total_students AS INT64) AS seats_remaining,
+        ROUND(SAFE_DIVIDE(ts.total_students, CAST(bec.budgeted_enrollment AS FLOAT64)), 3) AS percent_of_seats_filled
     FROM {{ source('enrollment', 'budgeted_enrollment_capacity_hardcode_8_18_25') }} AS bec
     LEFT JOIN total_students_cte AS ts
-        ON bec.school_name = ts.school_name
-       AND CAST(bec.grade_level AS STRING) = ts.grade_level
-       AND ts.year = '25-26'
+      ON bec.school_name = ts.school_name
+     AND CAST(bec.grade_level AS STRING) = ts.grade_level
+     AND ts.year = '25-26'
+),
+school_totals AS (
+    SELECT
+        school_name,
+        year,
+        'total' AS grade_level,
+        '' AS subgroup,
+        '' AS demographic,
+        SUM(student_count) AS student_count,
+        SUM(budgeted_enrollment) AS budgeted_enrollment,
+        SUM(seats_remaining) AS seats_remaining,
+        ROUND(SAFE_DIVIDE(SUM(student_count), SUM(budgeted_enrollment)), 3) AS percent_of_seats_filled
+    FROM actual_vs_budget
+    GROUP BY school_name, year
 ),
 subgroup_counts AS (
     SELECT
@@ -35,13 +50,13 @@ subgroup_counts AS (
         race AS demographic,
         COUNT(*) AS student_count,
         CAST(NULL AS INT64) AS budgeted_enrollment,
-        CAST(NULL AS INT64) AS seats_remaining
+        CAST(NULL AS INT64) AS seats_remaining,
+        CAST(NULL AS FLOAT64) AS percent_of_seats_filled
     FROM {{ source('views', 'student_to_teacher') }}
     WHERE year = '25-26'
     GROUP BY school_name, year, grade_level, race
 
     UNION ALL
-
     SELECT
         school_name,
         year,
@@ -50,13 +65,13 @@ subgroup_counts AS (
         elastatus AS demographic,
         COUNT(*) AS student_count,
         CAST(NULL AS INT64) AS budgeted_enrollment,
-        CAST(NULL AS INT64) AS seats_remaining
+        CAST(NULL AS INT64) AS seats_remaining,
+        CAST(NULL AS FLOAT64) AS percent_of_seats_filled
     FROM {{ source('views', 'student_to_teacher') }}
     WHERE year = '25-26'
     GROUP BY school_name, year, grade_level, elastatus
 
     UNION ALL
-
     SELECT
         school_name,
         year,
@@ -65,13 +80,13 @@ subgroup_counts AS (
         sped_identifier AS demographic,
         COUNT(*) AS student_count,
         CAST(NULL AS INT64) AS budgeted_enrollment,
-        CAST(NULL AS INT64) AS seats_remaining
+        CAST(NULL AS INT64) AS seats_remaining,
+        CAST(NULL AS FLOAT64) AS percent_of_seats_filled
     FROM {{ source('views', 'student_to_teacher') }}
     WHERE year = '25-26'
     GROUP BY school_name, year, grade_level, sped_identifier
 
     UNION ALL
-
     SELECT
         school_name,
         year,
@@ -80,13 +95,13 @@ subgroup_counts AS (
         absenteeism_status AS demographic,
         COUNT(*) AS student_count,
         CAST(NULL AS INT64) AS budgeted_enrollment,
-        CAST(NULL AS INT64) AS seats_remaining
+        CAST(NULL AS INT64) AS seats_remaining,
+        CAST(NULL AS FLOAT64) AS percent_of_seats_filled
     FROM {{ source('views', 'student_to_teacher') }}
     WHERE year = '25-26'
     GROUP BY school_name, year, grade_level, absenteeism_status
 
     UNION ALL
-
     SELECT
         school_name,
         year,
@@ -95,18 +110,21 @@ subgroup_counts AS (
         frlstatus AS demographic,
         COUNT(*) AS student_count,
         CAST(NULL AS INT64) AS budgeted_enrollment,
-        CAST(NULL AS INT64) AS seats_remaining
+        CAST(NULL AS INT64) AS seats_remaining,
+        CAST(NULL AS FLOAT64) AS percent_of_seats_filled
     FROM {{ source('views', 'student_to_teacher') }}
     WHERE year = '25-26'
     GROUP BY school_name, year, grade_level, frlstatus
 )
 
-SELECT *
-FROM actual_vs_budget
+SELECT * FROM actual_vs_budget
+UNION ALL
+SELECT * FROM school_totals
 UNION ALL
 SELECT *
 FROM subgroup_counts
 ORDER BY school_name, grade_level, subgroup, demographic
 
 
---student count coming from student_to_teacher seats_remaining recalculated.
+
+--confirm that subgroup counts look good 
