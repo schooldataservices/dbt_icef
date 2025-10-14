@@ -29,3 +29,13 @@ sources:
     tables:
       - name: budgeted_enrollment_capacity_hardcode_8_18_25
         description: "Table for budgeted enrollment and seat capacity (hardcoded for 8/18/25)"
+
+
+  - name: pear
+    schema: pear
+    database: icef-437920
+    tables:
+      - name: pear_daily_updates
+        description: "Daily updates for PEAR"
+
+#looks like in ps_StudentRosters student id 601119 appears twice for the 25-26 SY
