@@ -40,6 +40,15 @@ sources:
       - name: IA3_assessment_results_view
         description: Raw table for IA3 assessment results
 
+  - name: pear
+    description: Raw tables for PEAR assignments
+    schema: pear
+    tables:
+      - name: pear_assignment_responses_view
+        description: View of assignment responses in PEAR
+      - name: pear_assignment_summaries_view
+        description: View of assignment summaries in PEAR
+
 models:
   - name: main
     description: >

@@ -21,5 +21,4 @@ WHERE rn = 1
 -- One row per student–assessment–teacher
 -- Preference for graded work
 -- Only completed (“DONE”) assignments
-
 -- keeps only one record per student per assessment per teacher, prioritizing graded and latest submissions.

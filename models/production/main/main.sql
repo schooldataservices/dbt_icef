@@ -146,7 +146,52 @@ IA3 AS (
     CAST(performance_band_label AS STRING),
     CAST(proficiency AS STRING)
   FROM {{ source('state_testing', 'IA3_assessment_results_view') }}
+),
+pear_assignment_responses_view AS (
+  SELECT
+    CAST(data_source AS STRING),
+    CAST(assessment_id AS STRING),
+    CAST(year AS STRING),  -- Year as STRING
+    CAST(date_taken AS STRING),
+    CAST(grade AS STRING),
+    CAST(local_student_id AS STRING),
+    CAST(test_type AS STRING),
+    CAST(curriculum AS STRING),
+    CAST(unit AS STRING),
+    CAST(NULL AS STRING) AS unit_labels, --missing here
+    CAST(title AS STRING),
+    CAST(standard_code AS STRING),
+    CAST(score AS STRING),  -- Score as STRING
+    CAST(performance_band_level AS STRING),
+    CAST(performance_band_label AS STRING),
+    CAST(proficiency AS STRING)
+  FROM {{ source('pear', 'pear_assignment_responses_view') }}
+  WHERE score IS NOT NULL
+),
+pear_assignment_summaries_view AS (
+  SELECT
+    CAST(data_source AS STRING),
+    CAST(assessment_id AS STRING),
+    CAST(year AS STRING),  -- Year as STRING
+    CAST(date_taken AS STRING),
+    CAST(grade AS STRING),
+    CAST(local_student_id AS STRING),
+    CAST(test_type AS STRING),
+    CAST(curriculum AS STRING),
+    CAST(unit AS STRING),
+    CAST(NULL AS STRING) AS unit_labels, --missing here
+    CAST(title AS STRING),
+    CAST(standard_code AS STRING),
+    CAST(score AS STRING),  -- Score as STRING
+    CAST(performance_band_level AS STRING),
+    CAST(performance_band_label AS STRING),
+    CAST(proficiency AS STRING)
+  FROM {{ source('pear', 'pear_assignment_summaries_view') }}
+  WHERE score IS NOT NULL
 )
+
+
+
 
 SELECT * FROM illuminate
 UNION ALL
@@ -161,3 +206,7 @@ UNION ALL
 SELECT * FROM IA2
 UNION ALL
 SELECT * FROM IA3
+UNION ALL
+SELECT * FROM pear_assignment_responses_view
+UNION ALL
+SELECT * FROM pear_assignment_summaries_view
