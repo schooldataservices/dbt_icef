@@ -1,4 +1,7 @@
-{{ config(materialized='view', schema='views') }} --(dynamic)
+{{ config(
+    materialized='view',
+    schema='views'
+) }}
 
 
 WITH illuminate AS (
