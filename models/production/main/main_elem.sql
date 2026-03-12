@@ -6,10 +6,7 @@
 SELECT 
     CAST(st.year AS STRING) AS year,
     CAST(st.elastatus AS STRING) AS elastatus,
-    CAST(st.english_teacher AS STRING) AS english_teacher,
-    CAST(st.math_teacher AS STRING) AS math_teacher,
-    CAST(st.science_teacher AS STRING) AS science_teacher,
-    CAST(st.history_teacher AS STRING) AS history_teacher,
+    CAST(st.elem_teacher AS STRING) AS elem_teacher,
     CAST(st.lastfirst AS STRING) AS lastfirst,
     CAST(st.school_name AS STRING) AS school_name,
     CAST(st.sped_identifier AS STRING) AS sped_identifier,
@@ -28,7 +25,7 @@ FROM {{ source('views', 'student_to_teacher') }} st
 LEFT JOIN {{ ref('main') }} m
     ON CAST(st.student_number AS STRING) = m.local_student_id
     AND st.year = m.year
-WHERE m.grade IN ('9', '10', '11', '12')
-    AND m.data_source = 'illuminate'
+WHERE m.grade IN ('0', '1', '2', '3', '4', '5')
+    AND m.data_source IN ('illuminate', 'CERS')
 
 

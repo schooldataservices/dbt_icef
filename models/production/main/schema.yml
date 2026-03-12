@@ -53,7 +53,7 @@ models:
   - name: main
     description: >
       A materialized view combining assessment results from multiple sources
-      (Illuminate, iReady, STAR, DIBELS, SBAC, IA2, IA3) into a unified dataset.
+      (Illuminate, iReady, STAR, DIBELS, SBAC, IA2, IA3, PEAR, state_testing_continuous ICA) into a unified dataset.
     columns:
       - name: data_source
         description: The source of the assessment data (e.g., Illuminate, iReady).
@@ -96,3 +96,18 @@ models:
         description: The label for the performance band.
       - name: proficiency
         description: The proficiency level of the student.
+
+  - name: main_elem
+    description: >
+      Elementary (grades 0-5) assessment data from main, Illuminate only,
+      joined to student_to_teacher. Use this instead of main_illuminate_elementary.
+
+  - name: main_ms
+    description: >
+      Middle school (grades 6-8) assessment data from main, Illuminate and PEAR,
+      joined to student_to_teacher. Use this instead of main_illuminate_middle.
+
+  - name: main_hs
+    description: >
+      High school (grades 9-12) assessment data from main, Illuminate and PEAR,
+      joined to student_to_teacher. Use this instead of main_illuminate_high.

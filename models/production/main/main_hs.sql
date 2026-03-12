@@ -28,7 +28,16 @@ FROM {{ source('views', 'student_to_teacher') }} st
 LEFT JOIN {{ ref('main') }} m
     ON CAST(st.student_number AS STRING) = m.local_student_id
     AND st.year = m.year
-WHERE m.grade IN ('6', '7', '8')
-    AND m.data_source IN ('illuminate', 'pear')
+WHERE m.grade IN ('9', '10', '11', '12')
+    AND m.data_source IN ('illuminate', 'pear', 'CERS')
 
 
+
+
+--verify 118 and mark it off 
+
+-- verify 119. 
+
+--is jenny wanting me to filter on curriculum in this view?
+--mention existing flow chagnes to curriculm have been implmented and show new table 
+ 
