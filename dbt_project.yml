@@ -53,6 +53,11 @@ models:
        +schema: state_testing
        +enabled: true
 
+      enrollment:
+        +schema: enrollment
+        +materialized: table
+        +enabled: true
+
     
 
   

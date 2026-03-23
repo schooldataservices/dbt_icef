@@ -1,0 +1,35 @@
+version: 2
+
+sources:
+  - name: dbt_historical
+    description: Historical tables in dbt_historical dataset
+    schema: dbt_historical
+    tables:
+      - name: incoming_students_2024
+        description: Incoming students snapshot (e.g. 2024); stacked into enrollment.incoming_students
+      - name: incoming_students_2025
+        description: Incoming students snapshot (2025); stacked into enrollment.incoming_students
+      - name: incoming_students_2026
+        description: Incoming students snapshot (2026); stacked into enrollment.incoming_students
+      - name: completed_registrations_2025
+        description: Completed registrations snapshot (2025); stacked into enrollment.completed_registrations
+      - name: completed_registrations_2026
+        description: Completed registrations snapshot (2026); stacked into enrollment.completed_registrations
+
+models:
+  - name: incoming_students
+    description: >
+      Union of dbt_historical incoming_students_2025 and incoming_students_2026,
+      with a string `year` column ('24-25' vs '25-26') to differentiate snapshots.
+      Materialized as enrollment.incoming_students (per project target).
+    columns:
+      - name: year
+        description: School year label for the row ('24-25' from incoming_students_2025, '25-26' from incoming_students_2026).
+  - name: completed_registrations
+    description: >
+      Union of dbt_historical completed_registrations_2025 and completed_registrations_2026,
+      with a string `year` column ('24-25' vs '25-26') to differentiate snapshots.
+      Materialized as enrollment.completed_registrations (per project target).
+    columns:
+      - name: year
+        description: School year label for the row ('24-25' from completed_registrations_2025, '25-26' from completed_registrations_2026).
