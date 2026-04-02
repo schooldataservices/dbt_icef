@@ -17,6 +17,11 @@ sources:
           - not_null:
               column_name: lastfirst
 
+      - name: diagnostic_results_tabular
+        description: >
+          iReady/DIBELS diagnostic placements and DIBELS composites (BOY/MOY/EOY).
+          Joined to student_to_teacher on student_number and year; adjust source schema if not in views.
+
   - name: enrollment
     description: "BigQuery dataset containing enrollment tables"
     tables:

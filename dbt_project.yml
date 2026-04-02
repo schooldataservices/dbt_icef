@@ -55,7 +55,7 @@ models:
 
       enrollment:
         +schema: enrollment
-        +materialized: table
+        +materialized: view
         +enabled: true
 
     

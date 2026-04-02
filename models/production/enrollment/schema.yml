@@ -21,7 +21,7 @@ models:
     description: >
       Union of dbt_historical incoming_students_2025 and incoming_students_2026,
       with a string `year` column ('24-25' vs '25-26') to differentiate snapshots.
-      Materialized as enrollment.incoming_students (per project target).
+      Built as a view in the enrollment dataset (reflects source changes on query).
     columns:
       - name: year
         description: School year label for the row ('24-25' from incoming_students_2025, '25-26' from incoming_students_2026).
@@ -29,7 +29,7 @@ models:
     description: >
       Union of dbt_historical completed_registrations_2025 and completed_registrations_2026,
       with a string `year` column ('24-25' vs '25-26') to differentiate snapshots.
-      Materialized as enrollment.completed_registrations (per project target).
+      Built as a view in the enrollment dataset (reflects source changes on query).
     columns:
       - name: year
         description: School year label for the row ('24-25' from completed_registrations_2025, '25-26' from completed_registrations_2026).

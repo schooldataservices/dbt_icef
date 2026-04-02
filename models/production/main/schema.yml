@@ -102,10 +102,40 @@ models:
       Elementary (grades 0-5) assessment data from main, Illuminate only,
       joined to student_to_teacher. Use this instead of main_illuminate_elementary.
 
+  - name: curriculum_assessments
+    description: >
+      K-5 curriculum assessments aligned with the main_illuminate_elementary / 2.0 Curriculum Data spec:
+      BigQuery materialized view over main_elem—Illuminate only, curriculum ELA/Math/Science,
+      standard_code contains percent, excludes checkpoint and exit ticket test types.
+      Grades 0–5 come from main_elem.
+
+  - name: verified_assessments
+    description: >
+      Verified assessments (iReady and DIBELS): student_to_teacher + main + diagnostic (deduped to one row per
+      local_student_id, preferring richer EOY fields). Grain is one row per main skill/standard_code per student-year
+      (long-format iReady/DIBELS from main). Grade 0–12, data_source iready or dibels. Views dataset.
+    columns:
+      - name: year
+        description: School year (student_to_teacher / main).
+      - name: data_source
+        description: From main; restricted to iready or dibels by model filters.
+      - name: unit
+        description: From main (iReady/DIBELS assessment unit).
+      - name: score
+        description: >
+          Numeric only: SAFE_CAST of main.score to FLOAT64 after trim. NULL when main.score is text
+          (e.g. Well Below Benchmark) or empty; that text is carried in proficiency instead.
+      - name: proficiency
+        description: >
+          From main.proficiency when main.score parses as numeric; otherwise COALESCE(main.proficiency, main.score)
+          so labels formerly only in score are retained.
+      - name: standard_code
+        description: From main.
+
   - name: main_ms
     description: >
       Middle school (grades 6-8) assessment data from main, Illuminate and PEAR,
-      joined to student_to_teacher. Use this instead of main_illuminate_middle.
+      joined to student_to_teacher. Use this instead of main_illuminate_middle. 
 
   - name: main_hs
     description: >
