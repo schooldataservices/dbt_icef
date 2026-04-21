@@ -15,6 +15,8 @@ sources:
         description: Completed registrations snapshot (2025); stacked into enrollment.completed_registrations
       - name: completed_registrations_2026
         description: Completed registrations snapshot (2026); stacked into enrollment.completed_registrations
+      - name: application_pipeline
+        description: Daily refreshed application pipeline source table
 
 models:
   - name: incoming_students
@@ -33,3 +35,7 @@ models:
     columns:
       - name: year
         description: School year label for the row ('24-25' from completed_registrations_2025, '25-26' from completed_registrations_2026).
+  - name: application_pipeline
+    description: >
+      Replica view of dbt_historical.application_pipeline in the enrollment dataset.
+      Keeps parity with the daily source refresh.
