@@ -7,13 +7,13 @@
 -- `year` tags which school-year snapshot each row came from ('24-25' vs '25-26').
 
 SELECT
-  s.*,
+  s.* REPLACE(CAST(s.race AS STRING) AS race),
   '24-25' AS year
 FROM {{ source('dbt_historical', 'completed_registrations_2025') }} s
 
 UNION ALL
 
 SELECT
-  s.*,
+  s.* REPLACE(CAST(s.race AS STRING) AS race),
   '25-26' AS year
 FROM {{ source('dbt_historical', 'completed_registrations_2026') }} s
