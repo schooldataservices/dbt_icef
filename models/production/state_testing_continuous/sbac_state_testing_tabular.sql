@@ -1,6 +1,7 @@
--- One row per student: ELA + Math summative. Prior-year ELA/Math scale + DFS + ELA proficiency:
+-- One row per student: ELA + Math summative. Prior-year ELA/Math scale + DFS + ELA/Math proficiency:
 --   year = '24-25' → from state_testing_2324 (23-24). year = '25-26' → from state_testing_continuous (24-25).
 -- 25-26 upstream may have Summative CAST/ELPAC only (no ELA/Math summative yet); current-year scores stay null until ELA/Math summative rows exist. student_number / StudentIdentifier on 25-26 rows still filled from roster + continuous lookup when possible.
+-- prev_year_math_proficiency is NULL on historical rows (dbt_historical.sbac_state_testing_tabular_24-25 only persisted ELA prior-year proficiency).
 {{ config(materialized='view', schema='views') }}
 
 
@@ -83,7 +84,8 @@ math_2324 AS (
     studentidentifier,
     student_number,
     scalescoreachievementlevel AS math_scalescoreachievementlevel,
-    dfs_math AS math_dfs
+    dfs_math AS math_dfs,
+    proficiency
   FROM {{ source('state_testing', 'state_testing_2324') }}
   WHERE assessmenttype = 'Summative' AND subject = 'Math'
 ),
@@ -95,7 +97,8 @@ prior_2324_metrics AS (
     e.ela_dfs AS prev_year_ela_dfs,
     m.math_scalescoreachievementlevel AS prev_year_math_scalescoreachievementlevel,
     m.math_dfs AS prev_year_math_dfs,
-    e.proficiency AS prev_year_ela_proficiency
+    e.proficiency AS prev_year_ela_proficiency,
+    m.proficiency AS prev_year_math_proficiency
   FROM ela_2324 e
   FULL OUTER JOIN math_2324 m
     ON e.studentidentifier = m.studentidentifier
@@ -104,12 +107,30 @@ prior_2324_metrics AS (
 prior_2425_metrics AS (
   SELECT
     jc.studentidentifier,
+    jc.student_number,
     jc.ela_scalescoreachievementlevel AS prev_year_ela_scalescoreachievementlevel,
     jc.ela_dfs AS prev_year_ela_dfs,
     jc.math_scalescoreachievementlevel AS prev_year_math_scalescoreachievementlevel,
     jc.math_dfs AS prev_year_math_dfs,
-    jc.ela_proficiency AS prev_year_ela_proficiency
+    jc.ela_proficiency AS prev_year_ela_proficiency,
+    jc.math_proficiency AS prev_year_math_proficiency
   FROM joined_continuous jc
+),
+
+-- Roster-keyed lookup so 25-26 rows pick up prior-year metrics even when the student
+-- has no 25-26 ELA/Math Summative row (i.e., stacked_2526 is empty for them).
+prior_2425_metrics_by_student_number AS (
+  SELECT
+    student_number,
+    MAX(prev_year_ela_scalescoreachievementlevel) AS prev_year_ela_scalescoreachievementlevel,
+    MAX(prev_year_ela_dfs) AS prev_year_ela_dfs,
+    MAX(prev_year_math_scalescoreachievementlevel) AS prev_year_math_scalescoreachievementlevel,
+    MAX(prev_year_math_dfs) AS prev_year_math_dfs,
+    MAX(prev_year_ela_proficiency) AS prev_year_ela_proficiency,
+    MAX(prev_year_math_proficiency) AS prev_year_math_proficiency
+  FROM prior_2425_metrics
+  WHERE student_number IS NOT NULL
+  GROUP BY student_number
 ),
 
 ela_continuous_2526 AS (
@@ -184,23 +205,18 @@ stacked_2425 AS (
     p2324.prev_year_ela_dfs,
     p2324.prev_year_math_scalescoreachievementlevel,
     p2324.prev_year_math_dfs,
-    p2324.prev_year_ela_proficiency
+    p2324.prev_year_ela_proficiency,
+    p2324.prev_year_math_proficiency
   FROM joined_continuous jc
   LEFT JOIN prior_2324_metrics p2324
     ON jc.studentidentifier = p2324.studentidentifier
 ),
 
+-- prev_year_* columns are joined later in current_year_2526 via student_number on the roster,
+-- so this CTE is just a thin pass-through of the 25-26 current-year scores.
 stacked_2526 AS (
-  SELECT
-    jc.*,
-    p2425.prev_year_ela_scalescoreachievementlevel,
-    p2425.prev_year_ela_dfs,
-    p2425.prev_year_math_scalescoreachievementlevel,
-    p2425.prev_year_math_dfs,
-    p2425.prev_year_ela_proficiency
+  SELECT jc.*
   FROM joined_continuous_2526 jc
-  LEFT JOIN prior_2425_metrics p2425
-    ON jc.studentidentifier = p2425.studentidentifier
 ),
 
 student_to_teacher_2425 AS (
@@ -257,6 +273,7 @@ current_year_2425 AS (
   SELECT
     sst.studentidentifier,
     sst.student_number,
+    -- ELA (current year + prior year)
     sst.ela_assessmentname,
     sst.ela_scalescoreachievementlevel,
     sst.ela_proficiency,
@@ -267,6 +284,10 @@ current_year_2425 AS (
     sst.`ela__writing`,
     sst.`ela__listening`,
     sst.`ela__research_and_inquiry`,
+    sst.prev_year_ela_scalescoreachievementlevel,
+    sst.prev_year_ela_dfs,
+    sst.prev_year_ela_proficiency,
+    -- Math (current year + prior year)
     sst.math_assessmentname,
     sst.math_scalescoreachievementlevel,
     sst.math_proficiency,
@@ -276,11 +297,10 @@ current_year_2425 AS (
     sst.`math__concepts_and_procedures`,
     sst.`math__problem_solving_and_modeling___data_analysis`,
     sst.`math__communicating_reasoning`,
-    sst.prev_year_ela_scalescoreachievementlevel,
-    sst.prev_year_ela_dfs,
     sst.prev_year_math_scalescoreachievementlevel,
     sst.prev_year_math_dfs,
-    sst.prev_year_ela_proficiency,
+    sst.prev_year_math_proficiency,
+    -- Roster / metadata
     st.lastfirst,
     st.grade_level,
     st.elastatus,
@@ -301,9 +321,12 @@ current_year_2425 AS (
 ),
 
 current_year_2526 AS (
+  -- prev_year_* values come from prior_2425_metrics_by_student_number (roster-keyed),
+  -- so they're populated even when the student has no 25-26 ELA/Math Summative row yet.
   SELECT
     COALESCE(sst.studentidentifier, sil.studentidentifier) AS studentidentifier,
     COALESCE(sst.student_number, st.student_number) AS student_number,
+    -- ELA (current year + prior year)
     sst.ela_assessmentname,
     sst.ela_scalescoreachievementlevel,
     sst.ela_proficiency,
@@ -314,6 +337,10 @@ current_year_2526 AS (
     sst.`ela__writing`,
     sst.`ela__listening`,
     sst.`ela__research_and_inquiry`,
+    p2425.prev_year_ela_scalescoreachievementlevel,
+    p2425.prev_year_ela_dfs,
+    p2425.prev_year_ela_proficiency,
+    -- Math (current year + prior year)
     sst.math_assessmentname,
     sst.math_scalescoreachievementlevel,
     sst.math_proficiency,
@@ -323,11 +350,10 @@ current_year_2526 AS (
     sst.`math__concepts_and_procedures`,
     sst.`math__problem_solving_and_modeling___data_analysis`,
     sst.`math__communicating_reasoning`,
-    sst.prev_year_ela_scalescoreachievementlevel,
-    sst.prev_year_ela_dfs,
-    sst.prev_year_math_scalescoreachievementlevel,
-    sst.prev_year_math_dfs,
-    sst.prev_year_ela_proficiency,
+    p2425.prev_year_math_scalescoreachievementlevel,
+    p2425.prev_year_math_dfs,
+    p2425.prev_year_math_proficiency,
+    -- Roster / metadata
     st.lastfirst,
     st.grade_level,
     st.elastatus,
@@ -344,6 +370,8 @@ current_year_2526 AS (
     ON sst.student_number = st.student_number
   LEFT JOIN studentidentifier_lookup_2526 sil
     ON sil.student_number = st.student_number
+  LEFT JOIN prior_2425_metrics_by_student_number p2425
+    ON p2425.student_number = st.student_number
   WHERE st.grade_level IN (3, 4, 5, 6, 7, 8, 11)
 ),
 
@@ -351,6 +379,7 @@ historical AS (
   SELECT
     studentidentifier,
     student_number,
+    -- ELA (current year + prior year)
     ela_assessmentname,
     ela_scalescoreachievementlevel,
     ela_proficiency,
@@ -361,6 +390,10 @@ historical AS (
     `ela__writing`,
     `ela__listening`,
     `ela__research_and_inquiry`,
+    `24_ela_scalescoreachievementlevel` AS prev_year_ela_scalescoreachievementlevel,
+    `24_ela_dfs` AS prev_year_ela_dfs,
+    `24_proficiency` AS prev_year_ela_proficiency,
+    -- Math (current year + prior year); snapshot didn't persist prev_year_math_proficiency.
     math_assessmentname,
     math_scalescoreachievementlevel,
     math_proficiency,
@@ -370,11 +403,10 @@ historical AS (
     `math__concepts_and_procedures`,
     `math__problem_solving_and_modeling___data_analysis`,
     `math__communicating_reasoning`,
-    `24_ela_scalescoreachievementlevel` AS prev_year_ela_scalescoreachievementlevel,
-    `24_ela_dfs` AS prev_year_ela_dfs,
     `24_math_scalescoreachievementlevel` AS prev_year_math_scalescoreachievementlevel,
     `24_math_dfs` AS prev_year_math_dfs,
-    `24_proficiency` AS prev_year_ela_proficiency,
+    CAST(NULL AS FLOAT64) AS prev_year_math_proficiency,
+    -- Roster / metadata
     lastfirst,
     grade_level,
     elastatus,
